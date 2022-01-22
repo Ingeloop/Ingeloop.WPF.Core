@@ -73,6 +73,8 @@ And use the converters as follow:
 </ProgressBar>
 ```
 
+List of converters: (In Progress)
+
 ## Demo:
 
 [Demo Project](https://github.com/Ingeloop/Ingeloop.WPF.Core/tree/master/Ingeloop.WPF.Core.Demo)
