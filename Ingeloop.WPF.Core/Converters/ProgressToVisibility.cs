@@ -9,11 +9,11 @@ using System.Windows.Data;
 
 namespace Ingeloop.WPF.Core
 {
-    public class ProgressToVisibility
+    public class ProgressToVisibility : IValueConverter
     {
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			double progress = (double)value;
+			double progress = System.Convert.ToDouble(value);
 			bool targetVisibility = progress > 0;
 			if (parameter != null && bool.Parse(parameter.ToString()))
 			{
