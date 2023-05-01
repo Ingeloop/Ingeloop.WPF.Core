@@ -82,7 +82,7 @@ namespace Ingeloop.WPF.Core
 
             foreach(string resourceToCopy in resourcesToCopy)
             {
-                object resourceValue = DialogHost.TryFindResource(resourceToCopy);
+                object resourceValue = DialogHost?.TryFindResource(resourceToCopy);
                 if (resourceValue != null)
                 {
                     dialogWindow.Resources[resourceToCopy] = resourceValue;
