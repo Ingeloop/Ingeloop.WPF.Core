@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 
 namespace Ingeloop.WPF.Core
 {
@@ -69,18 +71,17 @@ namespace Ingeloop.WPF.Core
         internal static bool? ShowDialog(DialogViewModel dialogViewModel)
         {
             var viewModelKey = dialogViewModel.GetType().Name;
-            if (!WindowsTypesCache.Keys.Contains(viewModelKey))
+            if (!WindowsTypesCache.TryGetValue(viewModelKey, out Type windowType))
             {
                 return null;
             }
 
-            Window dialogWindow = Activator.CreateInstance(WindowsTypesCache[viewModelKey]) as Window;
-            if (dialogWindow == null)
+            if (!(Activator.CreateInstance(windowType) is Window dialogWindow))
             {
                 return null;
             }
 
-            foreach(string resourceToCopy in resourcesToCopy)
+            foreach (string resourceToCopy in resourcesToCopy)
             {
                 object resourceValue = DialogHost?.TryFindResource(resourceToCopy);
                 if (resourceValue != null)
@@ -89,11 +90,27 @@ namespace Ingeloop.WPF.Core
                 }
             }
 
-            dialogWindow.DataContext = dialogViewModel;
-            dialogWindow.Owner = DialogHost;
-            bool? dialogResult = dialogWindow.ShowDialog();
+            //Set Owner (Current Process Main Window, or DialogHost)
+            bool ownerWindowFound = false;
+            try
+            {
+                var currentProcess = Process.GetCurrentProcess();
+                var mainWindowHandle = currentProcess.MainWindowHandle;
+                if (mainWindowHandle != IntPtr.Zero)
+                {
+                    new WindowInteropHelper(dialogWindow).Owner = mainWindowHandle ;
+                }
+                ownerWindowFound = true;
+            }
+            catch { }
+            if (!ownerWindowFound)
+            {
+                dialogWindow.Owner = DialogHost;
+            }
 
-            return dialogResult;
+            dialogWindow.DataContext = dialogViewModel;
+
+            return dialogWindow.ShowDialog();
         }
     }
 }
