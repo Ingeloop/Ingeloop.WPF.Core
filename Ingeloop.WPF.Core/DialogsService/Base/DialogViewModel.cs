@@ -23,11 +23,18 @@ namespace Ingeloop.WPF.Core
             }
         }
 
+        public bool ModelessValidated { get; set; }
+
         public DialogViewModel()
         {
         }
 
         public virtual bool IsOKButtonEnabled => true;
+
+        public void Show(Action validationAction = null)
+        {
+            DialogService.Show(this, validationAction);
+        }
 
         public bool? ShowDialog()
         {

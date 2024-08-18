@@ -70,6 +70,35 @@ namespace Ingeloop.WPF.Core
 
         internal static bool? ShowDialog(DialogViewModel dialogViewModel)
         {
+            var window = GetWindow(dialogViewModel);
+            if (window == null)
+            {
+                return null;
+            }
+            return window.ShowDialog();
+        }
+
+        internal static void Show(DialogViewModel dialogViewModel, Action validationAction = null)
+        {
+            var window = GetWindow(dialogViewModel);
+            if (window == null)
+            {
+                return;
+            }
+
+            window.Closing += (o, e) =>
+            {
+                if (validationAction != null && dialogViewModel.ModelessValidated)
+                {
+                    validationAction();
+                }
+            };
+
+            window.Show();
+        }
+
+        private static Window GetWindow(DialogViewModel dialogViewModel)
+        {
             var viewModelKey = dialogViewModel.GetType().Name;
             if (!WindowsTypesCache.TryGetValue(viewModelKey, out Type windowType))
             {
@@ -98,7 +127,7 @@ namespace Ingeloop.WPF.Core
                 var mainWindowHandle = currentProcess.MainWindowHandle;
                 if (mainWindowHandle != IntPtr.Zero)
                 {
-                    new WindowInteropHelper(dialogWindow).Owner = mainWindowHandle ;
+                    new WindowInteropHelper(dialogWindow).Owner = mainWindowHandle;
                 }
                 ownerWindowFound = true;
             }
@@ -110,7 +139,16 @@ namespace Ingeloop.WPF.Core
 
             dialogWindow.DataContext = dialogViewModel;
 
-            return dialogWindow.ShowDialog();
+            //Ensures the window is displayed in front of others
+            dialogWindow.Loaded += (o, e) =>
+            {
+                dialogWindow.Activate();
+
+                dialogWindow.Topmost = true;
+                dialogWindow.Topmost = false;
+            };
+
+            return dialogWindow;
         }
     }
 }
