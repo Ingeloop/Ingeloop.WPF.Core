@@ -7,14 +7,16 @@
     <authors>Léo SALVADOR</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
-	<icon>images\Logo-128x128.png</icon>
+	  <icon>images\Logo-128x128.png</icon>
     <projectUrl>https://github.com/Ingeloop/Ingeloop.WPF.Core</projectUrl>
     <description>Core Library for WPF (base classes, converters)</description>
     <releaseNotes></releaseNotes>
     <copyright>$copyright$</copyright>
     <tags>WPF MVVM</tags>
+    <readme>docs\README.md</readme>
   </metadata>
   <files>
     <file src="..\Logo-128x128.png" target="images\" />
+    <file src="..\README.md" target="docs\" />
   </files>
 </package>
