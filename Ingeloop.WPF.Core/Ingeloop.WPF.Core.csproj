@@ -74,6 +74,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /I /E "$(TargetDir)" "%25APPDATA%25\Autodesk\ApplicationPlugins\Ingeloop.ModelSwap.bundle\Contents\Navisworks\v21"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
