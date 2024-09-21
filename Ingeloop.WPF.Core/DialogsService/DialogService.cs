@@ -75,6 +75,20 @@ namespace Ingeloop.WPF.Core
             {
                 return null;
             }
+
+            //Ensures the window is displayed in front of others
+            window.Loaded += async (o, e) =>
+            {
+                try
+                {
+                    await BringWindowToFront(window);
+
+                    await Task.Delay(500);
+                    await BringWindowToFront(window);
+                }
+                catch { }
+            };
+
             return window.ShowDialog();
         }
 
@@ -95,6 +109,15 @@ namespace Ingeloop.WPF.Core
             };
 
             window.Show();
+        }
+
+        private static async Task BringWindowToFront(Window window)
+        {
+            await window?.Dispatcher?.BeginInvoke(new Action(() =>
+            {
+                window.Topmost = true;
+                window.Topmost = false;
+            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         private static Window GetWindow(DialogViewModel dialogViewModel)
@@ -138,15 +161,7 @@ namespace Ingeloop.WPF.Core
             }
 
             dialogWindow.DataContext = dialogViewModel;
-
-            //Ensures the window is displayed in front of others
-            dialogWindow.Loaded += (o, e) =>
-            {
-                dialogWindow.Activate();
-
-                dialogWindow.Topmost = true;
-                dialogWindow.Topmost = false;
-            };
+            dialogWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
             return dialogWindow;
         }
