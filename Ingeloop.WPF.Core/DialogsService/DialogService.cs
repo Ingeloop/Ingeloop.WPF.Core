@@ -161,7 +161,6 @@ namespace Ingeloop.WPF.Core
             }
 
             dialogWindow.DataContext = dialogViewModel;
-            dialogWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
             return dialogWindow;
         }
