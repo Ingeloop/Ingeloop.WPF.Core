@@ -31,14 +31,14 @@ namespace Ingeloop.WPF.Core
 
         public virtual bool IsOKButtonEnabled => true;
 
-        public void Show(Action validationAction = null)
+        public void Show(Action validationAction = null, DialogViewModel parentViewModel = null)
         {
-            DialogService.Show(this, validationAction);
+            DialogService.Show(this, validationAction, parentViewModel);
         }
 
-        public bool? ShowDialog()
+        public bool? ShowDialog(DialogViewModel parentViewModel = null)
         {
-            bool? dialogResult = DialogService.ShowDialog(this);
+            bool? dialogResult = DialogService.ShowDialog(this, parentViewModel);
             return dialogResult;
         }
     }
