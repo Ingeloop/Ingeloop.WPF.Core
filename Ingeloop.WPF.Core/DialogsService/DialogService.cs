@@ -31,6 +31,7 @@ namespace Ingeloop.WPF.Core
         }
 
         private static Dictionary<string, Type> WindowsTypesCache = new Dictionary<string, Type>();
+        private static Dictionary<DialogViewModel, Window> DialogWindows = new Dictionary<DialogViewModel, Window>();
 
         private static void DialogHostChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
@@ -68,9 +69,9 @@ namespace Ingeloop.WPF.Core
             }
         }
 
-        internal static bool? ShowDialog(DialogViewModel dialogViewModel)
+        internal static bool? ShowDialog(DialogViewModel dialogViewModel, DialogViewModel parentViewModel = null)
         {
-            var window = GetWindow(dialogViewModel);
+            var window = GetWindow(dialogViewModel, parentViewModel);
             if (window == null)
             {
                 return null;
@@ -92,9 +93,9 @@ namespace Ingeloop.WPF.Core
             return window.ShowDialog();
         }
 
-        internal static void Show(DialogViewModel dialogViewModel, Action validationAction = null)
+        internal static void Show(DialogViewModel dialogViewModel, Action validationAction = null, DialogViewModel parentViewModel = null)
         {
-            var window = GetWindow(dialogViewModel);
+            var window = GetWindow(dialogViewModel, parentViewModel);
             if (window == null)
             {
                 return;
@@ -120,7 +121,7 @@ namespace Ingeloop.WPF.Core
             }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
-        private static Window GetWindow(DialogViewModel dialogViewModel)
+        private static Window GetWindow(DialogViewModel dialogViewModel, DialogViewModel parentViewModel = null)
         {
             var viewModelKey = dialogViewModel.GetType().Name;
             if (!WindowsTypesCache.TryGetValue(viewModelKey, out Type windowType))
@@ -142,22 +143,55 @@ namespace Ingeloop.WPF.Core
                 }
             }
 
-            //Set Owner (Current Process Main Window, or DialogHost)
-            bool ownerWindowFound = false;
-            try
+            //Ensures a new instance is created each time
+            if (DialogWindows.TryGetValue(dialogViewModel, out Window window))
             {
-                var currentProcess = Process.GetCurrentProcess();
-                var mainWindowHandle = currentProcess.MainWindowHandle;
-                if (mainWindowHandle != IntPtr.Zero)
-                {
-                    new WindowInteropHelper(dialogWindow).Owner = mainWindowHandle;
-                }
-                ownerWindowFound = true;
+                DialogWindows.Remove(dialogViewModel);
             }
-            catch { }
+
+            //Register Window
+            DialogWindows.Add(dialogViewModel, dialogWindow);
+            dialogWindow.Closed += (o, e) =>
+            {
+                try
+                {
+                    DialogWindows.Remove(dialogViewModel);
+                }
+                catch { }
+            };
+
+            bool ownerWindowFound = false;
+            //Option 1: Set Parent from parentViewModel (if specified)
+            if (parentViewModel != null)
+            {
+                if (DialogWindows.TryGetValue(parentViewModel, out Window parentWindow))
+                {
+                    dialogWindow.Owner = parentWindow;
+                    ownerWindowFound = true;
+                }
+            }
+
+            //Option 2: Set Parent from Current Process Main Window
+            if (!ownerWindowFound)
+            {
+                try
+                {
+                    var currentProcess = Process.GetCurrentProcess();
+                    var mainWindowHandle = currentProcess.MainWindowHandle;
+                    if (mainWindowHandle != IntPtr.Zero)
+                    {
+                        new WindowInteropHelper(dialogWindow).Owner = mainWindowHandle;
+                    }
+                    ownerWindowFound = true;
+                }
+                catch { }
+            }
+
+            //Option 3: Set Parent from DialogHost
             if (!ownerWindowFound)
             {
                 dialogWindow.Owner = DialogHost;
+                ownerWindowFound = true;
             }
 
             dialogWindow.DataContext = dialogViewModel;
