@@ -4,11 +4,13 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace Ingeloop.WPF.Core
 {
@@ -153,11 +155,13 @@ namespace Ingeloop.WPF.Core
             DialogWindows.Add(dialogViewModel, dialogWindow);
             dialogWindow.Closed += (o, e) =>
             {
-                try
+                var mainWindowHandle = Process.GetCurrentProcess().MainWindowHandle;
+                if (mainWindowHandle != IntPtr.Zero)
                 {
-                    DialogWindows.Remove(dialogViewModel);
+                    SetForegroundWindow(mainWindowHandle);
                 }
-                catch { }
+
+                DialogWindows.Remove(dialogViewModel);
             };
 
             bool ownerWindowFound = false;
@@ -198,5 +202,8 @@ namespace Ingeloop.WPF.Core
 
             return dialogWindow;
         }
+
+        [DllImport("user32.dll")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
     }
 }
